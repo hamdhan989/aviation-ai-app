@@ -66,7 +66,7 @@ def load_instructor():
         return None
     try:
         genai.configure(api_key=API_KEY)
-        return genai.GenerativeModel('gemini-pro')
+        return genai.GenerativeModel('gemini-1.5-flash-latest')
     except:
         return None
 
