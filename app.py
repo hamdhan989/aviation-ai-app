@@ -4,7 +4,7 @@ from fpdf import FPDF
 
 # --- 1. SET YOUR KEY HERE ---
 # Tomorrow, paste your brand new API key between these quotes:
-API_KEY = "PASTE_NEW_KEY_HERE"
+API_KEY = "AIzaSyCj5ajhi1NlUTlmTM5Vbugt8zklswZPz-Y"
 
 # --- 2. THE ENGINE ---
 def get_instructor():
