@@ -1,67 +1,4 @@
-import streamlit as st
-import google.generativeai as genai
-from fpdf import FPDF
-
-# --- 1. INTERFACE & STYLE (GEMINI AESTHETIC) ---
-st.set_page_config(page_title="AeroMaster Pro", layout="wide", page_icon="✈️")
-
-st.markdown("""
-    <style>
-    /* Gemini Dark Mode Gradient */
-    .stApp {
-        background: radial-gradient(circle at 10% 20%, #1e293b 0%, #020617 90%);
-        color: #f8fafc;
-    }
-    
-    /* Sidebar Styling */
-    [data-testid="stSidebar"] {
-        background-color: #030712;
-        border-right: 1px solid #1e293b;
-    }
-
-    /* Gradient Title */
-    .gemini-title {
-        background: linear-gradient(90deg, #60a5fa, #a855f7);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 40px;
-        font-weight: 800;
-        letter-spacing: -1px;
-    }
-
-    /* Content Cards */
-    .card {
-        background: rgba(30, 41, 59, 0.45);
-        padding: 24px;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(12px);
-        margin-bottom: 20px;
-    }
-
-    /* Professional Buttons */
-    .stButton>button {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        padding: 12px 28px;
-        font-weight: 600;
-        transition: 0.3s;
-    }
-    .stButton>button:hover {
-        box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
-        transform: translateY(-2px);
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- 2. THE ENGINE (API SETUP WITH AUTO-DETECT) ---
-# CRITICAL: PASTE YOUR KEY BETWEEN THE QUOTES BELOW
-API_KEY = "AIzaSyCj5ajhi1NlUTlmTM5Vbugt8zklswZPz-Y" 
-
-def start_engine():
-    if "AIza" not in API_KEY:
+if "AIza" not in API_KEY:
         return None
     try:
         genai.configure(api_key=API_KEY)
@@ -145,11 +82,4 @@ elif page == "Exam Vault":
             pdf.output("Aviation_Mock.pdf")
             with open("Aviation_Mock.pdf", "rb") as f:
                 st.download_button("📥 Download PDF", f, "Aviation_Mock.pdf")
-
-elif page == "Pilot Stats":
-    st.markdown('<h1 class="gemini-title">Readiness Metrics</h1>', unsafe_allow_html=True)
-    skills = {"Navigation": 85, "Meteorology": 62, "Aerodynamics": 94, "Air Law": 78}
-    for s, v in skills.items():
-        st.write(f"{s}: {v}%")
-        st.progress(v/100)
 
