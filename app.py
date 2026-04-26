@@ -12,7 +12,7 @@ def init_engine():
     try:
         genai.configure(api_key=API_KEY)
         return genai.GenerativeModel(
-            model_name='gemini-1.5-flash',
+            model_name='gemini-pro',
             generation_config={"temperature": 0.7, "top_p": 0.95, "max_output_tokens": 2048}
         )
     except: return None
