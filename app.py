@@ -5,7 +5,7 @@ import datetime
 
 # --- 1. CORE ENGINE CONFIG ---
 # PASTE YOUR NEW API KEY HERE:
-API_KEY = "PASTE_YOUR_NEW_KEY_HERE"
+API_KEY = "AIzaSyAdjvKf61KBtW3ktwGPkzLR_gajhdfWMLE"
 
 def init_engine():
     if "AIza" not in API_KEY: return None
