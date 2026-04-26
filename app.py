@@ -4,21 +4,22 @@ from fpdf import FPDF
 import datetime
 
 # --- 1. CORE ENGINE CONFIG ---
-# Tomorrow or now, paste your API key here:
+# Paste your NEW API Key here:
 API_KEY = "AIzaSyA2GSuhO_XCd3LdYldDJlmhFRXDxzo3s8U"
 
 def init_engine():
     if "AIza" not in API_KEY: return None
     try:
-        # transport='rest' fixes the 404/v1beta error
+        # This 'transport=rest' is the secret to killing that 404 error
         genai.configure(api_key=API_KEY, transport='rest') 
+        # We use 'gemini-1.5-flash' but through the stable REST portal
         return genai.GenerativeModel('gemini-1.5-flash')
     except Exception as e:
         return None
 
 model = init_engine()
 
-# --- 2. THE ULTRA UI (GEMINI DESIGN LANGUAGE) ---
+# --- 2. THE ULTRA UI ---
 st.set_page_config(page_title="AeroMaster Ultra", layout="wide", page_icon="💠")
 
 st.markdown("""
@@ -42,7 +43,8 @@ st.markdown("""
 
 # --- 3. STATE MANAGEMENT ---
 if "history" not in st.session_state: st.session_state.history = []
-if "chat_obj" not in st.session_state: st.session_state.chat_obj = model.start_chat(history=[]) if model else None
+if "chat_obj" not in st.session_state: 
+    st.session_state.chat_obj = model.start_chat(history=[]) if model else None
 
 # --- 4. SIDEBAR ---
 with st.sidebar:
@@ -58,25 +60,22 @@ with st.sidebar:
 # --- 5. CHAT TERMINAL ---
 if app_mode == "Chat Terminal":
     st.markdown('<h1 class="ultra-title">Intelligence Terminal</h1>', unsafe_allow_html=True)
+    
+    # Display historical messages
     for msg in st.session_state.history:
         div_class = "user-bubble" if msg["role"] == "user" else "ai-bubble"
         st.markdown(f'<div class="{div_class}">{msg["content"]}</div>', unsafe_allow_html=True)
 
     if prompt := st.chat_input("Command the AI..."):
         st.session_state.history.append({"role": "user", "content": prompt})
-        st.rerun()
-
-# Logical processing after rerun to update UI
-if st.session_state.history and st.session_state.history[-1]["role"] == "user":
-    last_prompt = st.session_state.history[-1]["content"]
-    if not model:
-        st.error("Engine Fault: Insert valid API key in Line 11.")
-    else:
-        try:
-            response = st.session_state.chat_obj.send_message(last_prompt)
-            st.session_state.history.append({"role": "assistant", "content": response.text})
-            st.rerun()
-        except Exception as e:
-            st.error(f"Signal Interference: {str(e)}")
-
-# (Other modes "Exam Architect" and "Visualizer" logic can be added here)
+        
+        if not model:
+            st.error("Engine Fault: Insert valid API key in Line 11.")
+        else:
+            try:
+                # Use the chat object to generate response
+                response = st.session_state.chat_obj.send_message(prompt)
+                st.session_state.history.append({"role": "assistant", "content": response.text})
+                st.rerun()
+            except Exception as e:
+                st.error(f"Signal Interference: {str(e)}")
