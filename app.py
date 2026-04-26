@@ -5,7 +5,7 @@ import datetime
 # --- 1. CORE ENGINE CONFIG (GROQ) ---
 # Paste your Groq Key here (starts with gsk_...)
 # If you need a key, get it at https://console.groq.com/keys
-GROQ_API_KEY = "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"
+GROQ_API_KEY = st.secrets["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"]
 
 def get_ai_response(messages):
     try:
