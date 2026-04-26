@@ -1,112 +1,168 @@
 import streamlit as st
 import google.generativeai as genai
 from fpdf import FPDF
+import datetime
 
-# --- 1. SET YOUR KEY HERE ---
-# Tomorrow, paste your brand new API key between these quotes:
-API_KEY = "AIzaSyCj5ajhi1NlUTlmTM5Vbugt8zklswZPz-Y"
+# --- 1. CORE ENGINE CONFIG ---
+# PASTE YOUR NEW API KEY HERE:
+API_KEY = "PASTE_YOUR_NEW_KEY_HERE"
 
-# --- 2. THE ENGINE ---
-def get_instructor():
-    if "AIza" not in API_KEY:
-        return None
+def init_engine():
+    if "AIza" not in API_KEY: return None
     try:
         genai.configure(api_key=API_KEY)
-        return genai.GenerativeModel('gemini-1.5-flash')
-    except:
-        return None
+        return genai.GenerativeModel(
+            model_name='gemini-1.5-flash',
+            generation_config={"temperature": 0.7, "top_p": 0.95, "max_output_tokens": 2048}
+        )
+    except: return None
 
-instructor = get_instructor()
+model = init_engine()
 
-# --- 3. STYLING (GEMINI LOOK) ---
-st.set_page_config(page_title="AeroMaster Pro", layout="wide", page_icon="✈️")
+# --- 2. THE ULTRA UI (GEMINI DESIGN LANGUAGE) ---
+st.set_page_config(page_title="AeroMaster Ultra", layout="wide", page_icon="💠")
 
 st.markdown("""
     <style>
-    /* Dark Theme & Gradient Background */
-    .stApp {
-        background: radial-gradient(circle at 10% 20%, #1e293b 0%, #020617 90%);
-        color: #f8fafc;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap');
     
-    /* Sidebar Styling */
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #09090b; }
+    
+    .stApp { background: #09090b; color: #fafafa; }
+
+    /* Custom Sidebar - Professional Depth */
     [data-testid="stSidebar"] {
-        background-color: #030712;
-        border-right: 1px solid #1e293b;
+        background-color: #111114 !important;
+        border-right: 1px solid #27272a;
     }
 
-    /* Gemini-Style Blue/Purple Gradient */
-    .gemini-title {
-        background: linear-gradient(90deg, #60a5fa, #a855f7);
+    /* Professional Title Gradient */
+    .ultra-title {
+        background: linear-gradient(90deg, #60a5fa 0%, #a855f7 50%, #f472b6 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-size: 40px;
+        font-size: 3rem;
         font-weight: 800;
-        letter-spacing: -1px;
+        letter-spacing: -2px;
+        margin-bottom: 5px;
     }
 
-    /* Glassmorphism Cards */
-    .card {
-        background: rgba(30, 41, 59, 0.5);
-        padding: 24px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Premium Chat Bubbles */
+    .user-bubble {
+        background: #27272a;
+        padding: 1.2rem;
+        border-radius: 1.5rem 1.5rem 0.2rem 1.5rem;
+        margin: 1rem 0;
+        border: 1px solid #3f3f46;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .ai-bubble {
+        background: rgba(30, 41, 59, 0.4);
+        padding: 1.5rem;
+        border-radius: 1.5rem 1.5rem 1.5rem 0.2rem;
+        margin: 1rem 0;
+        border: 1px solid rgba(59, 130, 246, 0.2);
         backdrop-filter: blur(10px);
-        margin-bottom: 20px;
+        line-height: 1.7;
     }
 
-    /* High-Tech Buttons */
-    .stButton>button {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 25px;
-        font-weight: 600;
-        transition: 0.3s ease;
+    /* Subscription Badges */
+    .tier-badge {
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
-    .stButton>button:hover {
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-        transform: translateY(-2px);
-    }
+    .badge-plus { background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; }
+    
+    /* Sleek Input Box */
+    .stChatInputContainer { padding-bottom: 20px !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. NAVIGATION ---
+# --- 3. INTELLIGENT STATE MANAGEMENT ---
+if "history" not in st.session_state: st.session_state.history = []
+if "chat_obj" not in st.session_state: st.session_state.chat_obj = model.start_chat(history=[]) if model else None
+if "tier" not in st.session_state: st.session_state.tier = "PREMIUM PLUS"
+
+# --- 4. NAVIGATION & COMMAND CENTER ---
 with st.sidebar:
-    st.markdown("<h1 style='color: #60a5fa;'>✈️ AeroMaster</h1>", unsafe_allow_html=True)
-    st.markdown("Professional Flight Training AI")
-    st.markdown("---")
-    page = st.radio("Pilot Console", ["AI Ground School", "Mission Control", "Exam Vault"])
-    st.markdown("---")
-    st.caption("Status: CADET")
-
-# --- 5. PAGES ---
-if page == "AI Ground School":
-    st.markdown('<h1 class="gemini-title">AI Flight Instructor</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 style="color: #60a5fa;">💠 AeroMaster</h1>', unsafe_allow_html=True)
+    st.markdown(f'<span class="tier-badge badge-plus">{st.session_state.tier}</span>', unsafe_allow_html=True)
     
-    if not instructor:
-        st.error(f"❌ Key missing or invalid. Check Line 7 in GitHub. (Key begins with: {API_KEY[:4]})")
-    else:
-        st.markdown("<div class='card'>Hello Captain. Ask me any aeronautical question.</div>", unsafe_allow_html=True)
-        query = st.text_input("Enter query:", placeholder="e.g., Explain the four forces of flight.")
-        
-        if query:
-            with st.spinner("Analyzing data..."):
+    st.markdown("---")
+    app_mode = st.radio("Intelligence Hub", ["Chat Terminal", "Exam Architect", "Flight Visualizer"])
+    
+    st.markdown("---")
+    st.markdown("### Flight Log Operations")
+    if st.button("Archive & Clear Chat"):
+        st.session_state.history = []
+        st.session_state.chat_obj = model.start_chat(history=[]) if model else None
+        st.rerun()
+    
+    st.caption(f"Engine: Gemini 1.5 Pro-Ready\nLast Sync: {datetime.datetime.now().strftime('%H:%M')}")
+
+# --- 5. FUNCTIONAL MODES ---
+
+if app_mode == "Chat Terminal":
+    st.markdown('<h1 class="ultra-title">Intelligence Terminal</h1>', unsafe_allow_html=True)
+    st.markdown("<p style='color: #a1a1aa;'>Professional aviation guidance with full context memory.</p>", unsafe_allow_html=True)
+
+    # Display History with Premium Styling
+    for msg in st.session_state.history:
+        if msg["role"] == "user":
+            st.markdown(f'<div class="user-bubble">{msg["content"]}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="ai-bubble"><b>AeroMaster AI</b><br><br>{msg["content"]}</div>', unsafe_allow_html=True)
+
+    # Smart Input Loop
+    if prompt := st.chat_input("Command the AI..."):
+        st.session_state.history.append({"role": "user", "content": prompt})
+        st.markdown(f'<div class="user-bubble">{prompt}</div>', unsafe_allow_html=True)
+
+        with st.chat_message("assistant", avatar="💠"):
+            if not model:
+                st.error("Engine Fault: Insert valid API key in Line 15.")
+            else:
                 try:
-                    response = instructor.generate_content(f"You are a professional Flight Instructor. Be concise: {query}")
-                    st.markdown(f"<div class='card'><b>Instructor:</b><br><br>{response.text}</div>", unsafe_allow_html=True)
+                    response = st.session_state.chat_obj.send_message(prompt)
+                    st.markdown(f'<div class="ai-bubble"><b>AeroMaster AI</b><br><br>{response.text}</div>', unsafe_allow_html=True)
+                    st.session_state.history.append({"role": "assistant", "content": response.text})
                 except Exception as e:
-                    st.error(f"Engine Stall: {str(e)}")
+                    st.error(f"Signal Interference: {str(e)}")
 
-elif page == "Mission Control":
-    st.markdown('<h1 class="gemini-title">Mission Briefing</h1>', unsafe_allow_html=True)
-    col1, col2 = st.columns([2,1])
+elif app_mode == "Exam Architect":
+    st.markdown('<h1 class="ultra-title">Exam Architect</h1>', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
     with col1:
-        st.markdown("<div class='card'><h3>Flight Summary</h3>Your readiness for the upcoming PPL exam is at <b>84%</b>. Focus on Cross-Wind landings and Metrology next.</div>", unsafe_allow_html=True)
+        subj = st.selectbox("Specialization", ["PPL General", "Meteorology", "Navigation", "Human Factors", "Air Law"])
+        difficulty = st.select_slider("Intensity", options=["Cadet", "Commercial", "Ace"])
     with col2:
-        st.metric("Flight Hours", "45h", "+2h")
+        q_count = st.number_input("Questions", 5, 50, 10)
+    
+    if st.button("Generate Professional Paper"):
+        with st.spinner("Generating high-fidelity assessment..."):
+            paper_prompt = f"Generate a {difficulty} level pilot exam on {subj} with {q_count} questions. Include answers."
+            res = model.generate_content(paper_prompt)
+            st.markdown(f'<div class="ai-bubble">{res.text}</div>', unsafe_allow_html=True)
+            
+            # Auto-PDF Generation
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=11)
+            pdf.multi_cell(0, 10, txt=f"AeroMaster Pro - {subj} Exam\n\n" + res.text.encode('latin-1', 'replace').decode('latin-1'))
+            pdf_path = f"Exam_{subj}.pdf"
+            pdf.output(pdf_path)
+            with open(pdf_path, "rb") as f:
+                st.download_button("📥 Export as PDF", f, file_name=pdf_path)
 
-elif page == "Exam Vault":
-    st.markdown('<h1 class="gemini-title">Exam Documents</h1>', unsafe_allow_html=True)
-    st.write("Professional training documents will appear here once the license is active.")
+elif app_mode == "Flight Visualizer":
+    st.markdown('<h1 class="ultra-title">Visual Lab</h1>', unsafe_allow_html=True)
+    st.markdown("<div class='ai-bubble'><b>Feature Note:</b> Premium Plus utilizes Gemini's multimodal reasoning to generate high-detail situational briefings.</div>", unsafe_allow_html=True)
+    scene = st.text_area("Describe the flight scenario for visualization:")
+    if st.button("Generate Tactical Briefing"):
+        vis_res = model.generate_content(f"Act as a tactical flight instructor. Provide a visual and safety briefing for: {scene}")
+        st.markdown(f'<div class="ai-bubble">{vis_res.text}</div>', unsafe_allow_html=True)
